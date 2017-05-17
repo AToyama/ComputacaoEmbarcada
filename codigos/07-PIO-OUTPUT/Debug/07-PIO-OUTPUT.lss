@@ -718,7 +718,7 @@ int main(void)
 	* @Brief Output Enable Register
 	* Configuramos o pino como saída
 	*/
-	PIOC->PIO_OER = (1 << 8);
+	PIOC->PIO_OER = LED_PIN_MASK;
   40066e:	f503 6340 	add.w	r3, r3, #3072	; 0xc00
   400672:	f44f 7280 	mov.w	r2, #256	; 0x100
   400676:	611a      	str	r2, [r3, #16]
@@ -727,14 +727,14 @@ int main(void)
 	* Fazemos com que o controle do pino seja realizado pelo PIO
 	* e não por outro periférico
 	*/
-	PIOC->PIO_PER = (1 << 8);
+	PIOC->PIO_PER = LED_PIN_MASK;
   400678:	601a      	str	r2, [r3, #0]
 	* no caso especifico colocamos 0 (acende o LED)
 	* O registrador :
 	*   - PIO_SODR : coloca 1 nesse pino
 	*	- PIO_CODR : coloca 0 nesse pino
 	*/
-	PIOC->PIO_CODR =  (1 << 8);
+	PIOC->PIO_CODR =  LED_PIN_MASK;
   40067a:	635a      	str	r2, [r3, #52]	; 0x34
 	int timer = 0;
 	
@@ -763,7 +763,7 @@ int main(void)
   40068e:	e7f6      	b.n	40067e <main+0x2a>
   400690:	0040019d 	.word	0x0040019d
   400694:	400e1850 	.word	0x400e1850
-  400698:	02faf080 	.word	0x02faf080
+  400698:	05f5e100 	.word	0x05f5e100
 
 0040069c <__libc_init_array>:
   40069c:	b570      	push	{r4, r5, r6, lr}

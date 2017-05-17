@@ -94,7 +94,6 @@
 *    ---------------------   ---------------------   ---------------------
 *    |OER | 000000000000 |   |ODR | 000000000000 |   |OSR | 000000000000 |
 *    ---------------------   ---------------------   ---------------------
-
 *
 *    2.
 *    PIO->PIO_OER = (1 << 8) | (1 << 2);
@@ -247,21 +246,27 @@ int main(void)
 	* sempre executando um código, por isso utilizamos esse loop infingir.
 	*/
 	
+	//variáveis usadas para fazer o delay do blink
 	const int delay = 100000000;
 	int timer = 0;
 	
+	//loop
 	while(1){
 		
-		
+		//desativa o led
 		PIOC->PIO_SODR =  LED_PIN_MASK;
 		
+		//um counter apenas pra criar um delay entre as ações no led
 		while(timer<delay){
-			
 			timer++;
 		};
+		//zera o timer pra realizar o delay novamente
 		timer = 0 ;
+		
+		//ativa o led
 		PIOC->PIO_CODR = LED_PIN_MASK;
 
+		//realiza o delay novamente
 		while(timer<delay){
 			timer++;
 		};
