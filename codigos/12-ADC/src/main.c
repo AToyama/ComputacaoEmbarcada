@@ -45,6 +45,16 @@ volatile uint32_t g_ul_value = 0;
 /* timer counter */
 #define TC1_CHANNEL 1
 #define FREQUENCIA 1
+
+
+#define YEAR   2017
+#define MONTH  5
+#define DAY    22
+#define WEEK   21
+#define HOUR   20
+#define MINUTE 6
+#define SECOND 0
+
 /************************************************************************/
 /* Funcoes                                                              */
 /************************************************************************/
@@ -105,6 +115,17 @@ static void AFEC_Temp_callback(void)
 	is_conversion_done = true;
 }
 
+//inicializa o RTC
+void RTC_INIT(){
+	
+	pmc_enable_periph_clk(ID_RTC);
+
+	rtc_set_hour_mode(RTC, 0);
+	
+	rtc_set_date(RTC, YEAR, MONTH, DAY, WEEK);
+	rtc_set_time(RTC, HOUR, MINUTE, SECOND);
+}
+
 //configura TimerCounter TC1
 void TC1_init(void)
 {
@@ -131,6 +152,9 @@ void TC1_init(void)
  *  Interrupt handler for TC1 interrupt. 
  */
 
+volatile uint32_t dia, mes, ano, hora, minuto, segundo, semana;
+
+
 void TC1_Handler(void){
 	volatile uint32_t ul_dummy;
 
@@ -141,6 +165,11 @@ void TC1_Handler(void){
 
 	/* Avoid compiler warning */
 	UNUSED(ul_dummy);
+	
+	rtc_get_date(RTC, &ano, &mes, &dia, &semana);
+	rtc_get_time(RTC, &hora, &minuto, &segundo);
+	
+	printf("%02d/%02d/%04d - %02d:%02d:%02d\r\n",dia, mes, ano, hora, minuto,segundo);
 	
 	//inicializa conversão
 	afec_start_software_conversion(AFEC0);
@@ -164,6 +193,7 @@ int main(void)
 	sysclk_init();
   ioport_init();
   board_init();
+  RTC_INIT();
   
   /* inicializa delay */
   delay_init(sysclk_get_cpu_hz());

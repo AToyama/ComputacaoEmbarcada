@@ -128,7 +128,6 @@ void but_Handler(){
 	
 	//chama a função que pisca o led principal por 3 segundos
 	led_blink();
-	sleep = 0;
 	
     /*
      *  limpa interrupcao do PIO
@@ -145,8 +144,6 @@ void but_Handler(){
    else{
 	    pio_set(LED_PIO,LED_PIN_MASK);
    }
-	///ativa o modo sleep	
-	sleep = 1;
     
 }
 
@@ -154,8 +151,6 @@ void but1_Handler(){
   
 	//chama a função que pisca o led principal por 3 segundos
 	led_blink();
-	//desabilita o modo sleep
-	sleep = 0;
   
     uint32_t pioIntStatus;
     pioIntStatus =  pio_get_interrupt_status(BUT1_PIO);
@@ -165,18 +160,13 @@ void but1_Handler(){
 	pio_clear(OLED1_PIO, OLED1_PIN_MASK);
 	else
 	pio_set(OLED1_PIO,OLED1_PIN_MASK);
-	
-	//ativa o modo sleep
-	sleep = 1;
+
 }
 
 void but2_Handler(){
 	
 	//chama a função que pisca o led principal por 3 segundos
 	led_blink();
-	
-	//desabilita o modo sleep
-	sleep = 0;
 	
     uint32_t pioIntStatus;
     pioIntStatus =  pio_get_interrupt_status(BUT2_PIO);
@@ -186,8 +176,7 @@ void but2_Handler(){
 	pio_clear(OLED2_PIO, OLED2_PIN_MASK);
 	else
 	pio_set(OLED2_PIO,OLED2_PIN_MASK);
-	//ativa o modo sleep
-	sleep = 1;
+	
 }
 
 void but3_Handler(){
@@ -195,9 +184,6 @@ void but3_Handler(){
 	//chama a função que pisca o led principal por 3 segundos
 	led_blink();
 	
-	//desabilita o modo sleep
-	sleep = 0;
-
     uint32_t pioIntStatus;
     pioIntStatus =  pio_get_interrupt_status(BUT3_PIO);
 	
@@ -208,9 +194,6 @@ void but3_Handler(){
 	else{
 		pio_set(OLED3_PIO,OLED3_PIN_MASK);
 	}
-	//ativa o modo sleep
-	sleep = 1;
-
 }
 
 /************************************************************************/
@@ -333,11 +316,10 @@ int main(void)
 	/* Super loop                                                           */
 	/************************************************************************/
 	while(1){
-		if(sleep){
-			/* entra em modo sleep */
-			pmc_sleep(SLEEPMGR_SLEEP_WFI);	
-		}
-       
+	
+		/* entra em modo sleep */
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
+       /*quando uma interrupção ocorre o loop é pausado, parando o modo sleep*/
 	};
 }
 
