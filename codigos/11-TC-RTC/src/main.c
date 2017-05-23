@@ -5,11 +5,11 @@
 /************************************************************************/
 
 #define YEAR        2017
-#define MOUNTH      3
-#define DAY         27
-#define WEEK        13
-#define HOUR        9
-#define MINUTE      5
+#define MOUNTH      5
+#define DAY         22
+#define WEEK        21
+#define HOUR        22
+#define MINUTE      7
 #define SECOND      0
 
 /**
@@ -57,29 +57,28 @@
 #define BUT_PIN_MASK    (1 << BUT_PIN)
 #define BUT_DEBOUNCING_VALUE  79
 
-/*-------------OLED-------------------------*/
+/**
+ * Botões - OLED
+ */
 
-//PIO ID
-#define OLED_PIO_ID_but_1	ID_PIOD
-#define OLED_PIO_ID_but_2	ID_PIOC
-#define OLED_PIO_ID_but_3   ID_PIOA
+	/*BOTÃO 1*/
+	#define BUT1_PIO_ID			ID_PIOD
+	#define BUT1_PIO			PIOD	
+	#define BUT1_PIN			28
+	#define	BUT1_PIN_MASK		(1<<BUT1_PIN)
+			
+	/*BOTÃO 2*/
+	#define BUT2_PIO_ID			ID_PIOC
+	#define BUT2_PIO			PIOC	
+	#define BUT2_PIN			31
+	#define	BUT2_PIN_MASK		(1<<BUT2_PIN)
+	
+	/*BOTÃO 3*/
+	#define BUT3_PIO_ID			ID_PIOA
+	#define BUT3_PIO			PIOA
+	#define BUT3_PIN			19
+	#define	BUT3_PIN_MASK		(1<<BUT3_PIN)
 
-//PIO
-#define OLED_PIO_but_1         PIOD
-#define OLED_PIO_but_2         PIOC
-#define OLED_PIO_but_3         PIOA
-
-
-//button pin
-#define OLED_PIN_but_1		28
-#define OLED_PIN_but_2		31
-#define OLED_PIN_but_3      19
-
-
-//Mask do botão
-#define OLED_PIN_MASK_but_1	(1 << OLED_PIN_but_1)
-#define OLED_PIN_MASK_but_2	(1 << OLED_PIN_but_2
-#define OLED_PIN_MASK_but_3 (1 << OLED_PIN_but_3)
 
 /************************************************************************/
 /* VAR globais                                                          */
@@ -88,6 +87,11 @@ volatile uint8_t flag_led0 = 1;
 volatile uint8_t flag_led1 = 1;
 volatile uint8_t flag_led2 = 1;
 volatile uint8_t flag_led3 = 1;
+
+volatile uint8_t flag_but1 = 1;
+volatile uint8_t flag_but2 = 1;
+volatile uint8_t flag_but3 = 1;
+volatile uint8_t flag_but0 = 1;
 
 
 /************************************************************************/
@@ -107,11 +111,64 @@ void but_OLED_init(void);
 /************************************************************************/
 
 /**
+ *  Handle Interrupcao botao da placa
+ */
+
+void Button_Handler(){
+	
+	if(flag_but0){
+		//para o timer counter utilizado pelo led
+				tc_stop(TC0,0); pio_set(LED_PIO, LED_PIN_MASK);
+		//muda a flag do botão
+		flag_but0 = 0;
+	}
+	else{
+		//start no timer counter do led
+		tc_start(TC0,0);
+		flag_but0 = 1;
+	}
+}
+
+/**
  *  Handle Interrupcao botao 1
  */
-static void Button1_Handler(uint32_t id, uint32_t mask)
-{
-	
+void but1_Handler(){
+	if(flag_but1){
+		tc_stop(TC0,1); pio_set(OLED_PIO_led_1, OLED_PIN_MASK_led_1);
+		flag_but1 = 0;
+	}
+	else{
+		tc_start(TC0,1);
+		flag_but1 = 1;
+	}
+}
+
+/**
+ *  Handle Interrupcao botao 2
+ */
+void but2_Handler(){
+	if(flag_but2){
+		tc_stop(TC0,2); pio_set(OLED_PIO_led_2, OLED_PIN_MASK_led_2);
+		flag_but2 = 0;
+	}
+	else{
+		tc_start(TC0,2);
+		flag_but2 = 1;
+	}
+}
+
+/**
+ *  Handle Interrupcao botao 3
+ */
+void but3_Handler(){
+	if(flag_but3){
+		tc_stop(TC1,0); pio_set(OLED_PIO_led_3, OLED_PIN_MASK_led_3);
+		flag_but3 = 0;
+	}
+	else{
+		tc_start(TC1,0);
+		flag_but3 = 1;
+	}
 }
 
 /**
@@ -263,18 +320,41 @@ void pin_toggle(Pio *pio, uint32_t mask){
 void BUT_init(void){
     /* config. pino botao em modo de entrada */
     pmc_enable_periph_clk(BUT_PIO_ID);
+	pmc_enable_periph_clk(BUT1_PIO_ID);
+	pmc_enable_periph_clk(BUT2_PIO_ID);
+	pmc_enable_periph_clk(BUT3_PIO_ID);
+
+	
     pio_set_input(BUT_PIO, BUT_PIN_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_set_input(BUT1_PIO, BUT1_PIN_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_set_input(BUT2_PIO, BUT2_PIN_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_set_input(BUT3_PIO, BUT3_PIN_MASK, PIO_PULLUP | PIO_DEBOUNCE);
     
     /* config. interrupcao em borda de descida no botao do kit */
     /* indica funcao (but_Handler) a ser chamada quando houver uma interrupção */
     pio_enable_interrupt(BUT_PIO, BUT_PIN_MASK);
-    pio_handler_set(BUT_PIO, BUT_PIO_ID, BUT_PIN_MASK, PIO_IT_FALL_EDGE, Button1_Handler);
+	pio_enable_interrupt(BUT1_PIO, BUT1_PIN_MASK);
+	pio_enable_interrupt(BUT2_PIO, BUT2_PIN_MASK);
+	pio_enable_interrupt(BUT3_PIO, BUT3_PIN_MASK);
+	
+    pio_handler_set(BUT_PIO, BUT_PIO_ID, BUT_PIN_MASK, PIO_IT_FALL_EDGE, Button_Handler);
+	pio_handler_set(BUT1_PIO, BUT1_PIO_ID, BUT1_PIN_MASK, PIO_IT_FALL_EDGE, but1_Handler);
+	pio_handler_set(BUT2_PIO, BUT2_PIO_ID, BUT2_PIN_MASK, PIO_IT_FALL_EDGE, but2_Handler);
+	pio_handler_set(BUT3_PIO, BUT3_PIO_ID, BUT3_PIN_MASK, PIO_IT_FALL_EDGE, but3_Handler);
     
     /* habilita interrupçcão do PIO que controla o botao */
     /* e configura sua prioridade                        */
     NVIC_EnableIRQ(BUT_PIO_ID);
+	NVIC_EnableIRQ(BUT1_PIO_ID);
+	NVIC_EnableIRQ(BUT2_PIO_ID);
+	NVIC_EnableIRQ(BUT3_PIO_ID);
+	
     NVIC_SetPriority(BUT_PIO_ID, 1);
+	NVIC_SetPriority(BUT1_PIO_ID, 1);
+	NVIC_SetPriority(BUT2_PIO_ID, 1);
+	NVIC_SetPriority(BUT3_PIO_ID, 1);
 };
+
 
 /**
  * @Brief Inicializa o pino do LED
@@ -348,6 +428,7 @@ void RTC_init(){
     rtc_enable_interrupt(RTC,  RTC_IER_ALREN); 
     
 }
+
 
 /************************************************************************/
 /* Main Code	                                                        */
